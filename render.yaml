@@ -1,0 +1,41 @@
+# Render Blueprint: creates the backend and the frontend together.
+# In Render: New -> Blueprint -> pick this repo. Secrets marked sync:false are asked for in the dashboard.
+services:
+  - type: web
+    name: cvgenius-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gpt-4o-mini
+      - key: FRONTEND_URL
+        sync: false            # your frontend address, e.g. https://cvgenius-web.onrender.com
+      # Add the MPESA_* values here later, when you have a Paybill or Till.
+
+  - type: web
+    name: cvgenius-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_API_URL
+        sync: false            # your backend address, e.g. https://cvgenius-api.onrender.com
